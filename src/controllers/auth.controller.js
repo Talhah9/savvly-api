@@ -50,13 +50,13 @@ const login = async (req, res) => {
     if (!valid)
       return res.status(401).json(errorResponse('Email ou mot de passe incorrect'))
 
-    const token = signToken({ id: trainer.id, email: trainer.email, role: 'trainer' })
+    const token = signToken({ id: trainer.id, email: trainer.email, role: trainer.role || 'trainer' })
     const refresh = signRefreshToken({ id: trainer.id })
 
     const { password_hash, ...safeTrainer } = trainer
     res.json(successResponse({ trainer: safeTrainer, token, refresh }, 'Connecté'))
   } catch (err) {
-    res.status(500).json(errorResponse('Erreur serveur', err.message))
+    res.status(500).json(errorResponse('Erreur serveur', err.message)) 
   }
 }
 
