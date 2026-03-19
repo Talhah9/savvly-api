@@ -88,4 +88,4 @@ const me = async (req, res) => {
   res.json(successResponse({ trainer }))
 }
 
-module.exports = { register, login, refresh, me }
+module.exports = { register, login, refresh, me } 
