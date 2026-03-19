@@ -1,3 +1,6 @@
 const router = require('express').Router()
-router.get('/:slug', (req, res) => res.json({ todo: 'GET public trainer profile' }))
+const { getProfile } = require('../controllers/profiles.controller')
+
+router.get('/:slug', getProfile)
+
 module.exports = router

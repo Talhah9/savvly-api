@@ -1,7 +1,8 @@
 const router = require('express').Router()
 const { authenticate } = require('../middleware/auth')
+const { submitReview, getTrainerReviews } = require('../controllers/reviews.controller')
 
-router.post('/', authenticate, (req, res) => res.json({ todo: 'POST submit review' }))
-router.get('/trainer/:trainerId', (req, res) => res.json({ todo: 'GET reviews by trainer' }))
+router.post('/', authenticate, submitReview)
+router.get('/trainer/:trainerId', getTrainerReviews)
 
 module.exports = router
