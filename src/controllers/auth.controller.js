@@ -1,4 +1,3 @@
-@'
 const bcrypt = require('bcryptjs')
 const supabase = require('../config/supabase')
 const { signToken, signRefreshToken, verifyRefreshToken } = require('../utils/jwt')
@@ -90,4 +89,3 @@ const me = async (req, res) => {
 }
 
 module.exports = { register, login, refresh, me }
-'@ | Set-Content src\controllers\auth.controller.js
