@@ -7,23 +7,29 @@ const rateLimit = require('express-rate-limit')
 
 const app = express()
 
+app.set('trust proxy', 1)
+
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
 }))
-app.set('trust proxy', 1)
 app.use(morgan('dev'))
 app.use(cors({
   origin: [
     process.env.FRONT_URL || 'https://savvly.co',
     'https://savvly.myshopify.com'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }))
-
 app.options('*', cors())
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 })
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  validate: { xForwardedForHeader: false }
+})
 app.use('/api/', limiter)
 
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }))
