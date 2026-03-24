@@ -11,6 +11,7 @@ app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
 }))
+app.set('trust proxy', 1)
 app.use(morgan('dev'))
 app.use(cors({
   origin: [
