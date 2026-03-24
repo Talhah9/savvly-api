@@ -1,6 +1,7 @@
 const supabase = require('../config/supabase')
 const { successResponse, errorResponse } = require('../utils/response')
 
+// GET
 const getCourses = async (req, res) => {
   try {
     const { category, level, search, sort, price_min, price_max, page = 1, limit = 12 } = req.query
@@ -20,8 +21,8 @@ const getCourses = async (req, res) => {
     else if (sort === 'price-desc') query = query.order('price', { ascending: false })
     else query = query.order('created_at', { ascending: false })
 
-    const from = (parseInt(page) - 1) * parseInt(limit)
-    const to = from + parseInt(limit) - 1
+    const from = (parseInt(page, 10) - 1) * parseInt(limit, 10)
+    const to = from + parseInt(limit, 10) - 1
     query = query.range(from, to)
 
     const { data, error, count } = await query
@@ -30,35 +31,62 @@ const getCourses = async (req, res) => {
     res.json(successResponse({
       courses: data,
       total: count,
-      page: parseInt(page),
-      pages: Math.ceil(count / parseInt(limit))
+      page: parseInt(page, 10),
+      pages: Math.ceil((count || 0) / parseInt(limit, 10))
     }))
   } catch (err) {
+    console.error('GET COURSES ERROR =>', err)
     res.status(500).json(errorResponse('Erreur serveur', err.message))
   }
 }
 
+// POST
 const createCourse = async (req, res) => {
   try {
+    console.log('BODY =>', req.body)
+    console.log('USER =>', req.user)
+
     const { title, description, duration_minutes, price, category, level } = req.body
-    if (!title || !price) return res.status(400).json(errorResponse('Champs manquants'))
+
+    if (!title || price === undefined) {
+      return res.status(400).json(errorResponse('Champs manquants'))
+    }
+
+    const payload = {
+      title,
+      description: description || null,
+      duration_minutes: duration_minutes || null,
+      price: Number(price),
+      category: category || null,
+      level: level || null,
+      trainer_id: req.user.id
+    }
+
+    console.log('PAYLOAD =>', payload)
 
     const { data, error } = await supabase
       .from('courses')
-      .insert({ title, description, duration_minutes, price, category, level, trainer_id: req.user.id })
+      .insert(payload)
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('SUPABASE ERROR =>', error)
+      throw error
+    }
+
     res.status(201).json(successResponse({ course: data }, 'Formation créée'))
   } catch (err) {
+    console.error('CREATE COURSE ERROR =>', err)
     res.status(500).json(errorResponse('Erreur serveur', err.message))
   }
 }
 
+// UPDATE
 const updateCourse = async (req, res) => {
   try {
     const { title, description, duration_minutes, price, category, level } = req.body
+
     const { data, error } = await supabase
       .from('courses')
       .update({ title, description, duration_minutes, price, category, level })
@@ -68,12 +96,15 @@ const updateCourse = async (req, res) => {
       .single()
 
     if (error) throw error
+
     res.json(successResponse({ course: data }, 'Formation mise à jour'))
   } catch (err) {
+    console.error('UPDATE ERROR =>', err)
     res.status(500).json(errorResponse('Erreur serveur', err.message))
   }
 }
 
+// DELETE
 const deleteCourse = async (req, res) => {
   try {
     const { error } = await supabase
@@ -83,12 +114,15 @@ const deleteCourse = async (req, res) => {
       .eq('trainer_id', req.user.id)
 
     if (error) throw error
+
     res.json(successResponse(null, 'Formation supprimée'))
   } catch (err) {
+    console.error('DELETE ERROR =>', err)
     res.status(500).json(errorResponse('Erreur serveur', err.message))
   }
 }
 
+// PUBLISH
 const publishCourse = async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -100,10 +134,18 @@ const publishCourse = async (req, res) => {
       .single()
 
     if (error) throw error
+
     res.json(successResponse({ course: data }, 'Formation publiée'))
   } catch (err) {
+    console.error('PUBLISH ERROR =>', err)
     res.status(500).json(errorResponse('Erreur serveur', err.message))
   }
 }
 
-module.exports = { getCourses, createCourse, updateCourse, deleteCourse, publishCourse }
+module.exports = {
+  getCourses,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  publishCourse
+}

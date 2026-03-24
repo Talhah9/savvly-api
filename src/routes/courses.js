@@ -1,7 +1,12 @@
 const router = require('express').Router()
 const { authenticate, requireRole } = require('../middleware/auth')
+
 const {
-  getCourses, createCourse, updateCourse, deleteCourse, publishCourse
+  getCourses,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  publishCourse
 } = require('../controllers/courses.controller')
 
 router.get('/', getCourses)
