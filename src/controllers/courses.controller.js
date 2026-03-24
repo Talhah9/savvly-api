@@ -18,7 +18,6 @@ const getCourses = async (req, res) => {
 
     if (sort === 'price-asc') query = query.order('price', { ascending: true })
     else if (sort === 'price-desc') query = query.order('price', { ascending: false })
-    else if (sort === 'rating') query = query.order('created_at', { ascending: false })
     else query = query.order('created_at', { ascending: false })
 
     const from = (parseInt(page) - 1) * parseInt(limit)
@@ -38,3 +37,73 @@ const getCourses = async (req, res) => {
     res.status(500).json(errorResponse('Erreur serveur', err.message))
   }
 }
+
+const createCourse = async (req, res) => {
+  try {
+    const { title, description, duration_minutes, price, category, level } = req.body
+    if (!title || !price) return res.status(400).json(errorResponse('Champs manquants'))
+
+    const { data, error } = await supabase
+      .from('courses')
+      .insert({ title, description, duration_minutes, price, category, level, trainer_id: req.user.id })
+      .select()
+      .single()
+
+    if (error) throw error
+    res.status(201).json(successResponse({ course: data }, 'Formation créée'))
+  } catch (err) {
+    res.status(500).json(errorResponse('Erreur serveur', err.message))
+  }
+}
+
+const updateCourse = async (req, res) => {
+  try {
+    const { title, description, duration_minutes, price, category, level } = req.body
+    const { data, error } = await supabase
+      .from('courses')
+      .update({ title, description, duration_minutes, price, category, level })
+      .eq('id', req.params.id)
+      .eq('trainer_id', req.user.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    res.json(successResponse({ course: data }, 'Formation mise à jour'))
+  } catch (err) {
+    res.status(500).json(errorResponse('Erreur serveur', err.message))
+  }
+}
+
+const deleteCourse = async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('trainer_id', req.user.id)
+
+    if (error) throw error
+    res.json(successResponse(null, 'Formation supprimée'))
+  } catch (err) {
+    res.status(500).json(errorResponse('Erreur serveur', err.message))
+  }
+}
+
+const publishCourse = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('courses')
+      .update({ is_published: true })
+      .eq('id', req.params.id)
+      .eq('trainer_id', req.user.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    res.json(successResponse({ course: data }, 'Formation publiée'))
+  } catch (err) {
+    res.status(500).json(errorResponse('Erreur serveur', err.message))
+  }
+}
+
+module.exports = { getCourses, createCourse, updateCourse, deleteCourse, publishCourse }
