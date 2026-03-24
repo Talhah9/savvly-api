@@ -7,7 +7,10 @@ const rateLimit = require('express-rate-limit')
 
 const app = express()
 
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}))
 app.use(morgan('dev'))
 app.use(cors({
   origin: [
